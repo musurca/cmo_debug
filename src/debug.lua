@@ -22,12 +22,17 @@ local DEBUG_ACTIONS = {
     {
         script="Debug_DisableAISelected()",
         name="Disable AI for selected units",
-        desc="Sets .AI_EvaluateTargets_enabled and .AI_DeterminePrimaryTarget_enabled to false for all selected units to improve performance."
+        desc="Set .AI_EvaluateTargets_enabled and .AI_DeterminePrimaryTarget_enabled to false for all selected units to improve performance."
     },
     {
         script="Debug_SetFuelPercentSelected()",
         name="Set fuel percentage for selected units",
-        desc="Sets fuel carried by the selected units to a percentage of the maximum fuel capacity."
+        desc="Set fuel carried by the selected units to a percentage of the maximum fuel capacity."
+    },
+    {
+        script="Debug_SetRandomFuelPercentSelected()",
+        name="Set a random fuel percentage for selected units",
+        desc="Set fuel carried by the selected units to a random percentage of the maximum fuel capacity within a specified range."
     },
     {
         script="Debug_RemoveDebugFramework()",
@@ -98,6 +103,35 @@ function Debug_SetFuelPercentSelected()
         Unit_SetFuelPercent(unit, fuel_num, pct)
     end)
     Input_OK(fuel.." fuel set to "..percent.."% for "..#selected.." unit(s).")
+end
+
+function Debug_SetRandomFuelPercentSelected()
+    local selected = GetSelectedUnits()
+    if #selected == 0 then
+        Input_OK("You must select at least 1 unit!")
+        return
+    end
+
+    local msg = "Which type of fuel to set?\n\nValid types include Aviation, Diesel, Oil, Gas, Battery, AirIndep, Rocket, Torpedo, and Coast."
+    local val = Input_String(msg)
+    fuel = string.upper(RStrip(val))
+    fuel_num = FUELTYPES[fuel]
+    if fuel_num == nil then
+        Input_OK("Didn't recognize "..val.." as a valid fuel!")
+        return
+    end
+    local min_percent = Input_Number("Set minimum percentage of maximum fuel capacity (0-100):")
+    local max_percent = Input_Number("Set maximum percentage of maximum fuel capacity (0-100):")
+    min_percent = math.max(0, math.min(min_percent, 100))
+    max_percent = math.max(0, math.min(max_percent, 100))
+    if max_percent < min_percent then
+        max_percent, min_percent = min_percent, max_percent
+    end
+    min_pct, max_pct = min_percent*100, max_percent*100
+    ForEachDo(selected, function(unit)
+        Unit_SetFuelPercent(unit, fuel_num, math.random(min_pct, max_pct) / 10000)
+    end)
+    Input_OK(fuel.." fuel set to random percentage between "..min_percent.."% and "..max_percent.."% for "..#selected.." unit(s).")
 end
 
 function Debug_SetHeading()
