@@ -43,6 +43,11 @@ local DEBUG_ACTIONS = {
 
 function Debug_DisableAISelected()
     local sel_units = GetSelectedUnits()
+    if #sel_units == 0 then
+        Input_OK("You must select at least 1 unit!")
+        return
+    end
+
     ForEachDo(sel_units, function(unit)
         unit.AI_EvaluateTargets_enabled = false
         unit.AI_DeterminePrimaryTarget_enabled = false
