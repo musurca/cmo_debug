@@ -1,5 +1,10 @@
 local DEBUG_ACTIONS = {
     {
+        script="Debug_CopyRPs()",
+        name="Copy reference points to another side",
+        desc="Duplicates the currently highlighted reference points and places them on another side."
+    },
+    {
         script="Debug_SetHeading()",
         name="Set heading for selected units",
         desc="Set the orientation of the selected units from 0-360 degrees."
@@ -20,9 +25,14 @@ local DEBUG_ACTIONS = {
         desc="Add a custom label to a geographic coordinate with a reference point. Supports various coordinate formats including Decimal Degree, Degree Minutes, and Degrees Minutes Seconds."
     },
     {
-        script="Debug_DisableAISelected()",
+        script="Debug_SetAISelected(false)",
         name="Disable AI for selected units",
         desc="Set .AI_EvaluateTargets_enabled and .AI_DeterminePrimaryTarget_enabled to false for all selected units to improve performance."
+    },
+    {
+        script="Debug_SetAISelected(true)",
+        name="Enable AI for selected units",
+        desc="Set .AI_EvaluateTargets_enabled and .AI_DeterminePrimaryTarget_enabled to true for all selected units."
     },
     {
         script="Debug_SetFuelPercentSelected()",
@@ -41,7 +51,66 @@ local DEBUG_ACTIONS = {
     }
 }
 
-function Debug_DisableAISelected()
+function Debug_CopyRPs()
+    local myside = ScenEdit_GetSideOptions({side='playerside'})
+    local sides = VP_GetSides()
+    local rps = nil
+    for _,side in pairs(sides) do
+        if side.name == myside.side then
+            rps = ScenEdit_GetReferencePoints({side=side.name, area=side.rps})
+            break
+        end
+    end
+
+    local selected_rps = {}
+    if rps then
+        ForEachDo(rps, function(rp)
+            if rp.highlighted == 'True' then
+                table.insert(selected_rps, rp)
+            end
+        end)
+    end
+
+    if #selected_rps == 0 then
+        Input_OK("You must select at least 1 reference point!")
+        return
+    end
+
+    local msg = "Enter side name to copy reference points to:\nValid sides: "
+    local sidenames = {}
+    ForEachDo(sides, function(side)
+        if side.name ~= myside.side then
+            table.insert(sidenames, side.name)
+        end
+    end)
+    if #sidenames == 0 then
+        Input_OK("No other side to copy the reference points to!")
+        return
+    end
+    for k, sidename in ipairs(sidenames) do
+        msg = msg..sidename
+        if k ~= #sidenames then
+            msg = msg..", "
+        end
+    end
+    local copy_side = RStrip(Input_String(msg))
+    if IsIn(copy_side, sidenames) then
+        ForEachDo(selected_rps, function(rp)
+            ScenEdit_AddReferencePoint({
+                side=copy_side, 
+                name=rp.name, 
+                lat=rp.latitude,
+                lon=rp.longitude,
+                locked=rp.locked
+            })
+        end)
+        Input_OK(#selected_rps.." reference points copied to the "..copy_side.." side.")
+    else
+        Input_OK(copy_side.."is not a valid side!")
+    end
+end
+
+function Debug_SetAISelected(ai_state)
     local sel_units = GetSelectedUnits()
     if #sel_units == 0 then
         Input_OK("You must select at least 1 unit!")
@@ -49,10 +118,17 @@ function Debug_DisableAISelected()
     end
 
     ForEachDo(sel_units, function(unit)
-        unit.AI_EvaluateTargets_enabled = false
-        unit.AI_DeterminePrimaryTarget_enabled = false
+        ScenEdit_SetUnit({
+            guid=unit.guid,
+            AI_EvaluateTargets_enabled = ai_state,
+            AI_DeterminePrimaryTarget_enabled = ai_state
+        })
     end)
-    Input_OK("AI disabled for "..#sel_units.." unit(s).")
+    local state_name = "disabled"
+    if ai_state then
+        state_name = "enabled"
+    end
+    Input_OK("AI "..state_name.." for "..#sel_units.." unit(s).")
 end
 
 function Debug_MarkLatLon(will_label)
@@ -149,7 +225,10 @@ function Debug_SetHeading()
     local hdg = Input_Number("Set heading for selected units (0-360):")
     hdg = math.max(0, math.min(360, hdg))
     ForEachDo(selected, function(unit)
-        ScenEdit_SetUnit({guid=unit.guid, heading=hdg})
+        ScenEdit_SetUnit({
+            guid=unit.guid, 
+            heading=hdg
+        })
     end)
     Input_OK("Heading set to "..hdg.."° for "..#selected.." unit(s).")
 end
@@ -164,7 +243,10 @@ function Debug_SetSpeed()
     local spd = Input_Number("Set speed in knots for selected units:")
     spd = math.max(0, spd)
     ForEachDo(selected, function(unit)
-        ScenEdit_SetUnit({guid=unit.guid, speed=spd})
+        ScenEdit_SetUnit({
+            guid=unit.guid, 
+            speed=spd
+        })
     end)
     Input_OK("Speed set to "..spd.."kts for "..#selected.." unit(s).")
 end

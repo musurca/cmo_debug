@@ -13,6 +13,15 @@ function ForEachDo_Break(table, func)
     end
 end
 
+function IsIn(value, t)
+    for _, v in pairs(t) do
+        if value == v then
+            return true
+        end
+    end
+    return false
+end
+
 -- Strip leading and trailing whitespace
 function RStrip(str)
     str = string.gsub(str, "^%s*", "")
