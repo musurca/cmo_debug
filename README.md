@@ -2,6 +2,7 @@
 Debug tools for creating *Command: Modern Operations* scenarios. Adds a number of Special Actions to speed up repetitive/tedious tasks, such as:
 
 * Finding/labeling coordinates by latitude/longitude
+* Copy RPs from one side to another
 * Setting heading & speed for groups of units
 * Setting fuel quantity for groups of units
 * Disabling AI on large sets of facilities
