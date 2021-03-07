@@ -57,7 +57,10 @@ function Debug_CopyRPs()
     local rps = nil
     for _,side in pairs(sides) do
         if side.name == myside.side then
-            rps = ScenEdit_GetReferencePoints({side=side.name, area=side.rps})
+            rps = ScenEdit_GetReferencePoints({
+                side=side.name, 
+                area=side.rps
+            })
             break
         end
     end
@@ -155,7 +158,13 @@ function Debug_MarkLatLon(will_label)
 
         local playerside = ScenEdit_GetSideOptions({side="playerside"})
         local sidename = playerside.side
-        ScenEdit_AddReferencePoint({side=sidename, name=label, lat=lat, lon=lon, highlighted=true})
+        ScenEdit_AddReferencePoint({
+            side=sidename, 
+            name=label, 
+            lat=lat, 
+            lon=lon, 
+            highlighted=true
+        })
         Input_OK(msg)
     else
         Input_OK("Couldn't parse a valid latitude/longitude from\n"..val)

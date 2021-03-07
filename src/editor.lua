@@ -1,10 +1,16 @@
 function GetReferencePoints(sidename, rps)
-    return ScenEdit_GetReferencePoints({side=sidename, area=rps})
+    return ScenEdit_GetReferencePoints({
+        side=sidename, 
+        area=rps
+    })
 end
 
 function DeleteReferencePoints(sidename, rp_table)
     for i=1,#rp_table do
-        ScenEdit_DeleteReferencePoint({side=sidename, guid=rp_table[i].guid})
+        ScenEdit_DeleteReferencePoint({
+            side=sidename, 
+            guid=rp_table[i].guid
+        })
     end
 end
 
@@ -102,7 +108,9 @@ function Event_Create(evt_name, args)
     -- clear any existing events with that name
     ForEachDo(ScenEdit_GetEvents(), function(event)
         if event.details.description == evt_name then
-            ScenEdit_SetEvent(evt_name, {mode="remove"})
+            ScenEdit_SetEvent(evt_name, {
+                mode="remove"
+            })
         end
     end)
 
@@ -155,7 +163,10 @@ function Condition_Create(cond_name, args)
 end
 
 function Condition_Delete(cond_name)
-    ScenEdit_SetCondition({name=cond_name, mode="remove"})
+    ScenEdit_SetCondition({
+        name=cond_name, 
+        mode="remove"
+    })
 end
 
 function Action_Create(action_name, args)
@@ -166,6 +177,9 @@ function Action_Create(action_name, args)
 end
 
 function Action_Delete(action_name)
-    ScenEdit_SetAction({name=action_name, mode="remove"})
+    ScenEdit_SetAction({
+        name=action_name, 
+        mode="remove"
+    })
 end
 
